@@ -1,0 +1,54 @@
+version: '3'
+services:
+  frontend-nodejs:
+    image: node:10.11-jessie
+    volumes:
+      - ./:/var/www/
+    working_dir: /var/www/
+    tty: true
+
+  backend-nginx:
+    volumes:
+      - ./:/var/www/
+    build:
+      context: ./docker/backend/nginx
+    ports:
+      - "8889:80"
+
+  backend-php-fpm:
+    volumes:
+      - ./:/var/www/
+    build:
+      context: ./docker/backend/php-fpm
+    environment:
+      - "DB_HOST=mysql"
+      - "DB_PORT=3306"
+      - "REDIS_HOST=backend-redis"
+
+  backend-php-cli:
+    volumes:
+      - ./:/var/www/
+    build:
+      context: ./docker/backend/php-cli
+    environment:
+      - "DB_HOST=mysql"
+      - "DB_PORT=3306"
+    tty: true
+
+  backend-redis:
+    image: library/redis:6.0-alpine
+    ports:
+    - "63791:6379"
+
+  mysql:
+    image: mysql:5.7
+    environment:
+      - "MYSQL_ROOT_PASSWORD=secret"
+      - "MYSQL_USER=app"
+      - "MYSQL_PASSWORD=secret"
+      - "MYSQL_DATABASE=app"
+    ports:
+      - "33061:3306"
+    volumes:
+      - ./storage/docker/mysql:/var/lib/mysql
+
